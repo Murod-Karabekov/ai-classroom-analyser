@@ -48,7 +48,6 @@ class HeadPoseEstimator:
     def is_looking_away(self, rotation_vector, threshold=None):
         from src.utils.config import Config
         rotation_magnitude = np.linalg.norm(rotation_vector)
-        print(f"rotation_magnitude: {rotation_magnitude:.3f}")
         return 1 if rotation_magnitude > Config.HEAD_POSE_THRESHOLD else 0  
 
 

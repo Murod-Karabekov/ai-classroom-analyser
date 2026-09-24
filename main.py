@@ -18,6 +18,10 @@ from src.computer_vision.landmark_detection import LandmarkDetector
 
 from reports.engagement_report import EngagementReport
 
+def uzbek_state(state):
+    return "DIQQATLI" if state == "engaged" else "CHALG'IGAN"
+
+
 def main():
     HelperFunctions.print_system_status()
     Config.create_folders()
@@ -58,11 +62,13 @@ def main():
 
             # ---------- YAWN ----------
             mouth_points = [landmarks[i] for i in [78, 82, 13, 87, 84, 88, 308, 312, 14, 317, 314, 318]]
+            mouth_ratio = yawn_detector.mouth_aspect_ratio(mouth_points)
             yawn = yawn_detector.detect_yawn(mouth_points)
 
             # ---------- HEAD POSE ----------
             rotation_vector = head_pose.estimate_pose(landmarks, frame.shape)
             head_turn = head_pose.is_looking_away(rotation_vector)
+            rotation_magnitude = float((rotation_vector ** 2).sum() ** 0.5)
 
             # ---------- FEATURE VECTOR ----------
             feature_vector = [1, eye_closed, head_turn, yawn]
@@ -70,21 +76,35 @@ def main():
 
             report.add_state(state)
 
-            print(f"EAR avg: {ear_avg:.3f} | eye_closed: {eye_closed} | head_turn: {head_turn} | yawn: {yawn}")
-            print(f"Feature vector: {feature_vector}")
-            print(f"Model prediction: {predictor.predict(feature_vector)}")
+            eye_status = "YUMILGAN" if eye_closed else "OCHIQ"
+            head_status = "BURILGAN" if head_turn else "TO'G'RI"
+            yawn_status = "ESNASH ANIQLANDI" if yawn else "ESNASH ANIQLANMADI"
+            uzbek_prediction = uzbek_state(state)
+
+            print(f"Ko'zlar: {eye_status} | EAR: {ear_avg:.3f}")
+            print(f"Og'iz: {yawn_status} | MAR: {mouth_ratio:.3f}")
+            print(f"Bosh holati: {head_status} | burilish qiymati: {rotation_magnitude:.3f}")
+            print(f"Yakuniy baho: {uzbek_prediction}")
 
             # ---------- DISPLAY ----------
-            cv2.putText(
-                frame,
-                state.upper(),
-                (50, 50),
-                cv2.FONT_HERSHEY_SIMPLEX,
-                1,
-                (0,255,0) if state == "engaged" else (0,0,255),
-                2
-            )
-            
+            overlay_lines = [
+                f"HOLAT: {uzbek_prediction}",
+                f"KO'ZLAR: {eye_status} (EAR {ear_avg:.3f})",
+                f"OG'IZ: {yawn_status} (MAR {mouth_ratio:.3f})",
+                f"BOSH: {head_status}",
+            ]
+
+            for line_number, text in enumerate(overlay_lines):
+                cv2.putText(
+                    frame,
+                    text,
+                    (20, 35 + line_number * 32),
+                    cv2.FONT_HERSHEY_SIMPLEX,
+                    0.45 if line_number else 0.6,
+                    (0,255,0) if state == "engaged" else (0,0,255),
+                    2
+                )
+
         video.show_frame(frame)
 
         if cv2.waitKey(1) & 0xFF == ord("q"):

@@ -43,6 +43,6 @@ class HelperFunctions:
     @staticmethod
     def print_system_status():
         print("="*40)
-        print("Smart Classroom Attention Analyzer Running")
-        print("Time:", HelperFunctions.get_timestamp())
+        print("Aqlli sinf diqqat tahlilchisi ishga tushdi")
+        print("Vaqt:", HelperFunctions.get_timestamp())
         print("="*40)

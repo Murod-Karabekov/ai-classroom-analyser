@@ -6,11 +6,11 @@ csv_path = sys.argv[1] if len(sys.argv) > 1 else "reports/engagement_states.csv"
 
 def run_dashboard():
     st.set_page_config(
-        page_title="Smart Classroom Report",
+        page_title="Sinf diqqati hisoboti",
         layout="centered"
     )
 
-    st.title("📊 Smart Classroom Engagement Report")
+    st.title("Sinf o'quvchilari diqqati hisoboti")
 
     df = pd.read_csv(csv_path)
 
@@ -22,17 +22,23 @@ def run_dashboard():
 
     col1, col2, col3, col4 = st.columns(4)
 
-    col1.metric("Total Frames", total)
-    col2.metric("Engaged", engaged)
-    col3.metric("Distracted", distracted)
-    col4.metric("Score (%)", round(score, 2))
+    col1.metric("Jami kadrlar", total)
+    col2.metric("Diqqatli", engaged)
+    col3.metric("Chalg'igan", distracted)
+    col4.metric("Diqqat balli (%)", round(score, 2))
 
     st.divider()
 
-    st.subheader("Engagement Distribution")
-    st.bar_chart(df["state"].value_counts())
+    st.subheader("Diqqat holatlari taqsimoti")
+    chart_data = pd.DataFrame(
+        {"Holat": ["Diqqatli", "Chalg'igan"], "Soni": [engaged, distracted]}
+    ).set_index("Holat")
+    st.bar_chart(chart_data)
 
-    st.subheader("Attention Timeline")
-    st.line_chart((df["state"] == "engaged").astype(int))
+    st.subheader("Diqqat vaqt jadvali")
+    timeline = pd.DataFrame(
+        {"Diqqatli (1) / Chalg'igan (0)": (df["state"] == "engaged").astype(int)}
+    )
+    st.line_chart(timeline)
 
 run_dashboard()
